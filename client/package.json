@@ -7,26 +7,35 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run"
   },
   "dependencies": {
     "@gravity-ui/icons": "^2.22.0",
     "@gravity-ui/uikit": "^7.51.0",
     "@heroui/react": "^3.2.6",
     "@heroui/styles": "^3.2.6",
+    "@stripe/stripe-js": "^10.0.0",
     "@tailwindcss/vite": "^4.3.3",
     "axios": "^1.20.0",
+    "bangladesh-geojson": "https://github.com/ifahimreza/bangladesh-geojson/archive/4723ee5f9fecaa79af6266a746cf89c39841a02d.tar.gz",
     "better-auth": "^1.7.7",
+    "lucide-react": "^1.53.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-hook-form": "^7.89.0",
     "react-router-dom": "^7.18.4",
-    "tailwindcss": "^4.3.3"
+    "recharts": "^3.10.1",
+    "tailwindcss": "^4.3.3",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.81.0",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "vitest": "^5.0.3"
   }
 }
