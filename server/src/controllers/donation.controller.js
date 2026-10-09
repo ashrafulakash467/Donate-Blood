@@ -1,5 +1,6 @@
 import { USER_ROLES } from "../constants/auth.js";
 import {
+  cancelDonationAssignment,
   changeDonationStatus,
   confirmDonationRequest,
   createDonationRequest,
@@ -86,6 +87,12 @@ export const confirmDonation = async (request, response) =>
   sendSuccess(response, {
     message: "Donation request confirmed successfully",
     data: await confirmDonationRequest(request.validated.params.id, request.profile),
+  });
+
+export const cancelAssignment = async (request, response) =>
+  sendSuccess(response, {
+    message: "Donor assignment canceled successfully",
+    data: await cancelDonationAssignment(request.validated.params.id),
   });
 
 export const patchDonationStatus = async (request, response) =>

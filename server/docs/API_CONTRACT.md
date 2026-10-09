@@ -124,15 +124,19 @@ avatar, blood group, district, and upazila.
 | DELETE | `/api/v1/donations/:id` | Owner/Admin | — |
 | POST | `/api/v1/donations/:id/confirm` | Active matching donor | — |
 | PATCH | `/api/v1/donations/:id/status` | Owner/Admin/Volunteer | Status body |
+| PATCH | `/api/v1/donations/:id/cancel-assignment` | Admin/Volunteer | No body |
 
 Public filters: `bloodGroup`, `district`, `upazila`, `donationDate`, `page`, and
 `limit`. Public records expose only request ID, recipient name/location, blood
-group, date, and time.
+group, date, and time. `requesterPhone` is returned only by private donation
+endpoints and is never included in the public projection or donor search.
+Legacy donation records may omit it or return `null`.
 
 Create body:
 
 ```json
 {
+  "requesterPhone": "+8801712345678",
   "recipientName": "Patient Name",
   "recipientDistrict": "Dhaka",
   "recipientUpazila": "Savar",
@@ -145,8 +149,10 @@ Create body:
 }
 ```
 
+Bangladesh phone formats such as `01712345678`, `8801712345678`, and
+`+8801712345678` are accepted. The field is optional for backward compatibility.
 Requester identity, initial `pending` status, donor fields, and timestamps are
-server-owned. PATCH accepts only the nine fields shown above. Status body:
+server-owned. PATCH accepts only the ten fields shown above. Status body:
 
 ```json
 { "donationStatus": "done" }
@@ -157,10 +163,12 @@ Allowed transitions:
 - confirmation: `pending -> inprogress`
 - owner: `inprogress -> done|canceled`
 - admin/volunteer: `pending -> canceled`, `inprogress -> done|canceled`
+- admin/volunteer cancel assignment: `inprogress -> pending`, clearing all donor fields
 - `done` and `canceled` are terminal
 
 Confirmation uses an atomic conditional update, rejects self-confirmation, and
-requires a matching blood group.
+requires a matching blood group. Canceling an assignment uses its dedicated
+endpoint and is distinct from changing the request status to `canceled`.
 
 ## Dashboard
 
@@ -231,6 +239,7 @@ The response contains only the stored contact ID.
 | Confirm matching request | Yes | No | No |
 | View all requests | No | Yes | Yes |
 | Update request status | Own request | Yes | Yes |
+| Cancel assigned donor | No | Yes | Yes |
 | Edit/delete unrelated request | No | No | Yes |
 | View dashboard statistics | No | Yes | Yes |
 | Manage users and roles | No | No | Yes |

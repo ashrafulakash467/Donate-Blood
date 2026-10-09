@@ -33,6 +33,7 @@ export const createDonationRequest = async (input, profile) => {
     requesterName: profile.name,
     requesterEmail: profile.email,
     ...input,
+    requesterPhone: input.requesterPhone ?? null,
     donationStatus: DONATION_STATUSES.PENDING,
     donorUserId: null,
     donorName: null,
@@ -146,6 +147,39 @@ export const confirmDonationRequest = async (id, profile) => {
   );
 
   if (!donation) throw new ApiError(409, "Another donor already confirmed this request");
+  return donation;
+};
+
+export const cancelDonationAssignment = async (id) => {
+  const donations = await getDonationsCollection();
+  const objectId = new ObjectId(id);
+  const existing = await donations.findOne({ _id: objectId });
+  if (!existing) throw new ApiError(404, "Donation request not found");
+  if (existing.donationStatus !== DONATION_STATUSES.IN_PROGRESS || !existing.donorUserId) {
+    throw new ApiError(409, "This donation request has no active donor assignment");
+  }
+
+  const donation = await donations.findOneAndUpdate(
+    {
+      _id: objectId,
+      donationStatus: DONATION_STATUSES.IN_PROGRESS,
+      donorUserId: existing.donorUserId,
+    },
+    {
+      $set: {
+        donationStatus: DONATION_STATUSES.PENDING,
+        donorUserId: null,
+        donorName: null,
+        donorEmail: null,
+        updatedAt: new Date(),
+      },
+    },
+    { returnDocument: "after" },
+  );
+
+  if (!donation) {
+    throw new ApiError(409, "Donor assignment changed before this update completed");
+  }
   return donation;
 };
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Droplets } from 'lucide-react'
 import { DonationCardSkeleton } from '../../components/donation/DonationCardSkeleton'
 import { DonationRequestCard } from '../../components/donation/DonationRequestCard'
@@ -17,26 +17,37 @@ export function DonationRequestsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  useEffect(() => {
-    const controller = new AbortController()
-
-    const loadDonations = async () => {
-      setLoading(true)
+  const loadDonations = useCallback(async (signal, showLoading = true) => {
+      if (showLoading) setLoading(true)
       setError(null)
       try {
-        const data = await getPendingDonations({ page, limit: PAGE_SIZE }, controller.signal)
+        const data = await getPendingDonations({ page, limit: PAGE_SIZE }, signal)
         setDonations(data?.items ?? [])
         setPagination(data?.pagination ?? { page, totalPages: 0, total: 0 })
       } catch (requestError) {
         if (requestError.code !== 'ERR_CANCELED') setError(requestError.apiError || { message: requestError.message })
       } finally {
-        if (!controller.signal.aborted) setLoading(false)
+        if (!signal?.aborted) setLoading(false)
       }
+  }, [page])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const refreshVisiblePage = () => void loadDonations(controller.signal, false)
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') refreshVisiblePage()
     }
 
-    loadDonations()
-    return () => controller.abort()
-  }, [page])
+    const initialLoadTimer = window.setTimeout(() => void loadDonations(controller.signal), 0)
+    window.addEventListener('focus', refreshVisiblePage)
+    document.addEventListener('visibilitychange', refreshWhenVisible)
+    return () => {
+      window.clearTimeout(initialLoadTimer)
+      controller.abort()
+      window.removeEventListener('focus', refreshVisiblePage)
+      document.removeEventListener('visibilitychange', refreshWhenVisible)
+    }
+  }, [loadDonations])
 
   return (
     <section className="page-shell py-12 sm:py-16">

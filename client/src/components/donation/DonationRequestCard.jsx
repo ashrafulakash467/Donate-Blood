@@ -1,4 +1,4 @@
-import { CalendarDays, Clock3, MapPin } from 'lucide-react'
+import { ArrowRight, CalendarDays, Clock3, MapPin } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { formatDate, formatTime } from '../../utils/formatters'
 
@@ -15,7 +15,7 @@ export function DonationRequestCard({ donation }) {
           <p className="flex items-center gap-3"><CalendarDays className="size-4 shrink-0 text-red-500" /> {formatDate(donation.donationDate)}</p>
           <p className="flex items-center gap-3"><Clock3 className="size-4 shrink-0 text-red-500" /> {formatTime(donation.donationTime)}</p>
         </div>
-        <Link to={`/donation-requests/${donation._id}`} className="mt-6 inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-600">View details</Link>
+        <Link to={`/donation-requests/${donation._id}`} className="mt-6 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-red-600">View Details <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" /></Link>
       </div>
     </article>
   )

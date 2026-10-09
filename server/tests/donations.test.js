@@ -13,6 +13,7 @@ const mocks = vi.hoisted(() => ({
   updateDonationRequestDetails: vi.fn(),
   deleteDonationRequest: vi.fn(),
   confirmDonationRequest: vi.fn(),
+  cancelDonationAssignment: vi.fn(),
   changeDonationStatus: vi.fn(),
 }));
 
@@ -31,6 +32,7 @@ vi.mock("../src/services/donation.service.js", () => ({
   updateDonationRequestDetails: mocks.updateDonationRequestDetails,
   deleteDonationRequest: mocks.deleteDonationRequest,
   confirmDonationRequest: mocks.confirmDonationRequest,
+  cancelDonationAssignment: mocks.cancelDonationAssignment,
   changeDonationStatus: mocks.changeDonationStatus,
 }));
 
@@ -55,6 +57,7 @@ const donorProfile = {
   status: "active",
 };
 const validInput = {
+  requesterPhone: "+8801712345678",
   recipientName: "Patient Name",
   recipientDistrict: "Dhaka",
   recipientUpazila: "Savar",
@@ -110,6 +113,23 @@ describe("donation request creation and validation", () => {
     expect(response.body.message).toBe("Validation failed");
     expect(mocks.createDonationRequest).not.toHaveBeenCalled();
   });
+
+  it("validates Bangladesh phone numbers while allowing legacy-compatible omission", async () => {
+    await request(app)
+      .post("/api/v1/donations")
+      .set(tokenHeader)
+      .send({ ...validInput, requesterPhone: "12345" })
+      .expect(400);
+
+    const withoutPhone = { ...validInput };
+    delete withoutPhone.requesterPhone;
+    mocks.createDonationRequest.mockResolvedValue({ ...pendingDonation, requesterPhone: null });
+    await request(app)
+      .post("/api/v1/donations")
+      .set(tokenHeader)
+      .send(withoutPhone)
+      .expect(201);
+  });
 });
 
 describe("donation request queries", () => {
@@ -138,8 +158,23 @@ describe("donation request queries", () => {
     expect(response.body.data).toMatchObject({
       _id: id,
       requesterUserId: "auth-user-1",
+      requesterPhone: "+8801712345678",
       hospitalName: "General Hospital",
     });
+  });
+
+  it("keeps private details compatible with legacy requests that have no phone", async () => {
+    const legacyDonation = { ...pendingDonation };
+    delete legacyDonation.requesterPhone;
+    mocks.getDonationRequestById.mockResolvedValue(legacyDonation);
+
+    const response = await request(app)
+      .get(`/api/v1/donations/${id}`)
+      .set(tokenHeader)
+      .expect(200);
+
+    expect(response.body.data.requesterPhone).toBeUndefined();
+    expect(response.body.data.recipientName).toBe("Patient Name");
   });
 
   it("lists only the authenticated requester's records with dashboard limit", async () => {
@@ -167,6 +202,27 @@ describe("ownership and role enforcement", () => {
     const operation = request(app)[method](`/api/v1/donations/${id}`).set(tokenHeader);
     if (method === "patch") operation.send({ hospitalName: "New Hospital" });
     await operation.expect(200);
+  });
+
+  it("lets the owner update requesterPhone but rejects invalid formats", async () => {
+    mocks.updateDonationRequestDetails.mockResolvedValue({
+      ...pendingDonation,
+      requesterPhone: "01712345678",
+    });
+    await request(app)
+      .patch(`/api/v1/donations/${id}`)
+      .set(tokenHeader)
+      .send({ requesterPhone: "01712345678" })
+      .expect(200);
+    expect(mocks.updateDonationRequestDetails).toHaveBeenCalledWith(id, {
+      requesterPhone: "01712345678",
+    });
+
+    await request(app)
+      .patch(`/api/v1/donations/${id}`)
+      .set(tokenHeader)
+      .send({ requesterPhone: "invalid" })
+      .expect(400);
   });
 
   it.each(["donor", "volunteer"])("prevents a non-owner %s from editing or deleting", async (role) => {
@@ -226,5 +282,35 @@ describe("confirmation and status APIs", () => {
       .send({ donationStatus: "done" })
       .expect(409);
     expect(response.body.message).toBe("Invalid transition");
+  });
+
+  it.each(["admin", "volunteer"])("allows an active %s to cancel a donor assignment", async (role) => {
+    mocks.findProfileByAuthUserId.mockResolvedValue({ ...donorProfile, role });
+    mocks.cancelDonationAssignment.mockResolvedValue({
+      ...pendingDonation,
+      donationStatus: "pending",
+      donorUserId: null,
+      donorName: null,
+      donorEmail: null,
+    });
+
+    const response = await request(app)
+      .patch(`/api/v1/donations/${id}/cancel-assignment`)
+      .set(tokenHeader)
+      .expect(200);
+
+    expect(mocks.cancelDonationAssignment).toHaveBeenCalledWith(id);
+    expect(response.body.data).toMatchObject({
+      donationStatus: "pending",
+      donorUserId: null,
+    });
+  });
+
+  it("prevents donors from canceling another donor's assignment", async () => {
+    await request(app)
+      .patch(`/api/v1/donations/${id}/cancel-assignment`)
+      .set(tokenHeader)
+      .expect(403);
+    expect(mocks.cancelDonationAssignment).not.toHaveBeenCalled();
   });
 });

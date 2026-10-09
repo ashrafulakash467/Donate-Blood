@@ -1,8 +1,19 @@
 import { MongoClient, ServerApiVersion } from "mongodb";
+import { setServers } from "node:dns";
 import { getEnvironment } from "./env.js";
 
 let client;
 let connectionPromise;
+let dnsConfigured = false;
+
+const configureDnsServers = () => {
+  if (dnsConfigured) return;
+  const { MONGODB_DNS_SERVERS } = getEnvironment();
+  if (MONGODB_DNS_SERVERS) {
+    setServers(MONGODB_DNS_SERVERS.split(",").map((server) => server.trim()));
+  }
+  dnsConfigured = true;
+};
 
 export class DatabaseConnectionError extends Error {
   constructor(message = "Unable to connect to MongoDB") {
@@ -20,6 +31,7 @@ const createConnectionError = () =>
 export const getMongoClient = () => {
   if (!client) {
     try {
+      configureDnsServers();
       client = new MongoClient(getEnvironment().MONGODB_URI, {
         appName: "blood-donation-api",
         maxPoolSize: 10,

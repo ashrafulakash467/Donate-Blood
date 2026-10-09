@@ -9,6 +9,7 @@ vi.mock("../src/config/db.js", () => ({ getCollection: mocks.getCollection }));
 vi.mock("../src/config/indexes.js", () => ({ initializeIndexes: mocks.initializeIndexes }));
 
 import {
+  cancelDonationAssignment,
   changeDonationStatus,
   confirmDonationRequest,
   createDonationRequest,
@@ -71,6 +72,7 @@ describe("donation service", () => {
       requesterUserId: "donor-2",
       requesterName: "Second Donor",
       requesterEmail: "second@example.com",
+      requesterPhone: null,
       donationStatus: "pending",
       donorUserId: null,
       donorName: null,
@@ -90,7 +92,7 @@ describe("donation service", () => {
     });
     expect(collection.find).toHaveBeenCalledWith(
       { donationStatus: "pending", bloodGroup: "A+", recipientDistrict: "Dhaka" },
-      { projection: expect.not.objectContaining({ requesterEmail: 1, donorEmail: 1 }) },
+      { projection: expect.not.objectContaining({ requesterEmail: 1, requesterPhone: 1, donorEmail: 1 }) },
     );
     expect(cursor.skip).toHaveBeenCalledWith(3);
     expect(cursor.limit).toHaveBeenCalledWith(3);
@@ -135,6 +137,57 @@ describe("donation service", () => {
     await expect(confirmDonationRequest(id, profile)).rejects.toMatchObject({ statusCode: 409 });
   });
 
+  it("atomically cancels an active donor assignment and clears donor identity", async () => {
+    const assigned = {
+      ...pending,
+      donationStatus: "inprogress",
+      donorUserId: "donor-2",
+      donorName: "Second Donor",
+      donorEmail: "second@example.com",
+    };
+    collection.findOne.mockResolvedValue(assigned);
+    collection.findOneAndUpdate.mockResolvedValue({
+      ...assigned,
+      donationStatus: "pending",
+      donorUserId: null,
+      donorName: null,
+      donorEmail: null,
+    });
+
+    const result = await cancelDonationAssignment(id);
+
+    expect(collection.findOneAndUpdate).toHaveBeenCalledWith(
+      {
+        _id: expect.any(ObjectId),
+        donationStatus: "inprogress",
+        donorUserId: "donor-2",
+      },
+      {
+        $set: expect.objectContaining({
+          donationStatus: "pending",
+          donorUserId: null,
+          donorName: null,
+          donorEmail: null,
+        }),
+      },
+      { returnDocument: "after" },
+    );
+    expect(result).toMatchObject({ donationStatus: "pending", donorUserId: null });
+  });
+
+  it("rejects cancel-assignment without an active assignment or after a concurrent change", async () => {
+    collection.findOne.mockResolvedValue(pending);
+    await expect(cancelDonationAssignment(id)).rejects.toMatchObject({ statusCode: 409 });
+
+    collection.findOne.mockResolvedValue({
+      ...pending,
+      donationStatus: "inprogress",
+      donorUserId: "donor-2",
+    });
+    collection.findOneAndUpdate.mockResolvedValue(null);
+    await expect(cancelDonationAssignment(id)).rejects.toMatchObject({ statusCode: 409 });
+  });
+
   it("prevents owners and mismatched blood groups from confirming", async () => {
     collection.findOne.mockResolvedValue({ ...pending, requesterUserId: "donor-2" });
     await expect(confirmDonationRequest(id, profile)).rejects.toMatchObject({ statusCode: 409 });
@@ -152,6 +205,65 @@ describe("donation service", () => {
       { $set: expect.objectContaining({ donationStatus: "done" }) },
       { returnDocument: "after" },
     );
+  });
+
+  it("allows an owner to cancel an in-progress request without reopening it", async () => {
+    const owner = { ...profile, authUserId: "donor-1" };
+    collection.findOne.mockResolvedValue({ ...pending, donationStatus: "inprogress" });
+    collection.findOneAndUpdate.mockResolvedValue({ ...pending, donationStatus: "canceled" });
+    await changeDonationStatus(id, "canceled", owner);
+    expect(collection.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: expect.any(ObjectId), donationStatus: "inprogress" },
+      { $set: expect.objectContaining({ donationStatus: "canceled" }) },
+      { returnDocument: "after" },
+    );
+  });
+
+  it("allows another matching donor to confirm after staff cancel the assignment", async () => {
+    const assigned = {
+      ...pending,
+      donationStatus: "inprogress",
+      donorUserId: "donor-2",
+      donorName: "Second Donor",
+      donorEmail: "second@example.com",
+    };
+    const reopened = {
+      ...assigned,
+      donationStatus: "pending",
+      donorUserId: null,
+      donorName: null,
+      donorEmail: null,
+    };
+    collection.findOne
+      .mockResolvedValueOnce(assigned)
+      .mockResolvedValueOnce(reopened);
+    collection.findOneAndUpdate
+      .mockResolvedValueOnce(reopened)
+      .mockResolvedValueOnce({
+        ...reopened,
+        donationStatus: "inprogress",
+        donorUserId: "donor-3",
+      });
+
+    await cancelDonationAssignment(id);
+    const nextDonor = {
+      ...profile,
+      authUserId: "donor-3",
+      name: "Third Donor",
+      email: "third@example.com",
+    };
+    const reassigned = await confirmDonationRequest(id, nextDonor);
+
+    expect(collection.findOneAndUpdate).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        donationStatus: "pending",
+        donorUserId: null,
+        requesterUserId: { $ne: "donor-3" },
+      }),
+      { $set: expect.objectContaining({ donorUserId: "donor-3" }) },
+      { returnDocument: "after" },
+    );
+    expect(reassigned).toMatchObject({ donationStatus: "inprogress", donorUserId: "donor-3" });
   });
 
   it("allows volunteer cancellation but rejects invalid transitions", async () => {

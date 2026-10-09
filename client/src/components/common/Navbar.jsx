@@ -46,13 +46,13 @@ export function Navbar() {
           ))}
         </div>
 
-        <div className="hidden items-center gap-2 sm:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           {!loading && authenticated ? <><NavLink to="/funding" className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100"><CircleDollarSign className="size-4 text-red-600" /> Funding</NavLink><Dropdown><Dropdown.Trigger className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white p-1.5 pr-2 text-slate-700 shadow-sm hover:border-red-200"><span className="grid size-8 place-items-center overflow-hidden rounded-lg bg-slate-900 text-xs font-black text-white">{profile?.avatar ? <img src={profile.avatar} alt="" className="size-full object-cover" /> : initials}</span><ChevronDown className="size-4" /><span className="sr-only">Open account menu</span></Dropdown.Trigger><Dropdown.Popover placement="bottom end"><Dropdown.Menu aria-label="Account menu" onAction={handleAccountAction}><Dropdown.Item id="dashboard"><LayoutDashboard className="size-4" /> Dashboard</Dropdown.Item><Dropdown.Item id="logout" variant="danger"><LogOut className="size-4" /> Logout</Dropdown.Item></Dropdown.Menu></Dropdown.Popover></Dropdown></> : <><NavLink to="/login" className="rounded-xl px-4 py-2 text-sm font-bold text-slate-700 hover:bg-slate-100">Sign in</NavLink><NavLink to="/register" className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-red-600/20 hover:bg-red-700">Join as donor</NavLink></>}
         </div>
 
         <button
           type="button"
-          className="grid size-10 place-items-center rounded-xl border border-slate-200 text-slate-700 sm:hidden"
+          className="grid size-10 place-items-center rounded-xl border border-slate-200 text-slate-700 lg:hidden"
           aria-label={isOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={isOpen}
           onClick={() => setIsOpen((value) => !value)}
@@ -62,7 +62,7 @@ export function Navbar() {
       </nav>
 
       {isOpen && (
-        <div className="border-t border-slate-100 bg-white px-4 py-4 sm:hidden">
+        <div className="border-t border-slate-100 bg-white px-4 py-4 lg:hidden">
           <div className="mx-auto flex max-w-7xl flex-col gap-1">
             {publicNavigation.map((item) => (
               <NavLink key={item.to} to={item.to} className={navClass} onClick={() => setIsOpen(false)}>

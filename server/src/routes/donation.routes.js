@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { USER_ROLES } from "../constants/auth.js";
 import {
+  cancelAssignment,
   confirmDonation,
   createDonation,
   getDonation,
@@ -63,6 +64,14 @@ donationRouter.post(
   verifyRole(USER_ROLES.DONOR),
   validateRequest({ params: donationIdParamsSchema }),
   asyncHandler(confirmDonation),
+);
+donationRouter.patch(
+  "/:id/cancel-assignment",
+  verifyAuth,
+  verifyActiveUser,
+  verifyRole(USER_ROLES.ADMIN, USER_ROLES.VOLUNTEER),
+  validateRequest({ params: donationIdParamsSchema }),
+  asyncHandler(cancelAssignment),
 );
 donationRouter.patch(
   "/:id/status",

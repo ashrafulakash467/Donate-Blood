@@ -10,6 +10,7 @@ export const apiEndpoints = Object.freeze({
   },
   donations: {
     all: '/donations',
+    create: '/donations',
     mine: '/donations/mine',
     manage: '/donations/manage',
     details: (id) => `/donations/${id}`,

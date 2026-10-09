@@ -40,6 +40,7 @@ export function ProfilePage() {
 
   const district = useWatch({ control, name: 'district' })
   const avatar = useWatch({ control, name: 'avatar' })
+  const displayedAvatar = avatar || profile?.avatar
   const upazilas = useMemo(() => getUpazilasByDistrictName(district), [district])
   const districtField = register('district')
 
@@ -81,16 +82,26 @@ export function ProfilePage() {
       <div className="mt-8 grid gap-6 lg:grid-cols-[0.7fr_1.3fr]">
         <aside className="rounded-3xl bg-slate-950 p-6 text-white shadow-xl shadow-slate-300/40">
           <div className="mx-auto size-28 overflow-hidden rounded-3xl bg-slate-800">
-            {profile?.avatar ? <img src={profile.avatar} alt={`${profile.name} avatar`} className="size-full object-cover" /> : <div className="grid size-full place-items-center text-3xl font-black text-slate-400">{(profile?.name || user?.name || 'U')[0].toUpperCase()}</div>}
+            {displayedAvatar ? <img src={displayedAvatar} alt={`${profile?.name || user?.name} avatar`} className="size-full object-cover" /> : <div className="grid size-full place-items-center text-3xl font-black text-slate-400">{(profile?.name || user?.name || 'U')[0].toUpperCase()}</div>}
           </div>
           <h2 className="mt-5 text-center text-xl font-black">{profile?.name || user?.name}</h2>
           <p className="mt-1 text-center text-sm text-slate-400">{profile?.email || user?.email}</p>
           <div className="mt-5 flex justify-center gap-2"><StatusBadge status={role} /><StatusBadge status={status} /></div>
-          <div className="mt-6 flex gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300"><ShieldCheck className="size-5 shrink-0 text-red-400" /><p>Your identity comes from Better Auth, while role and status come from the protected profile API.</p></div>
+          <div className="mt-6 flex gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300"><ShieldCheck className="size-5 shrink-0 text-red-400" /><p>Identity comes from Better Auth, while role and status come from the protected profile API.</p></div>
         </aside>
 
         <form className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8" noValidate onSubmit={handleSubmit(saveProfile)}>
-          <AvatarUploader value={avatar} onChange={(url) => setValue('avatar', url, { shouldDirty: true })} onUploadingChange={setIsImageUploading} disabled={!isEditing || isSubmitting} error={errors.avatar?.message} />
+          <AvatarUploader
+            value={avatar}
+            onChange={(url) => setValue('avatar', url, { shouldDirty: true, shouldValidate: true })}
+            onUploadingChange={(uploading) => {
+              setIsImageUploading(uploading)
+              if (uploading) setIsEditing(true)
+            }}
+            disabled={isSubmitting}
+            error={errors.avatar?.message}
+            successMessage="Image uploaded. Save changes to update your profile."
+          />
           <input type="hidden" {...register('avatar')} />
           <div className="mt-6 grid gap-5 sm:grid-cols-2">
             <FormField label="Full name" disabled={!isEditing} error={errors.name?.message} {...register('name')} />

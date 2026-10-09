@@ -8,7 +8,13 @@ const isValidCalendarDate = (value) => {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 };
 
+const bangladeshPhoneSchema = z.string().trim().regex(
+  /^(?:\+?88)?01[3-9]\d{8}$/,
+  "Use a valid Bangladesh phone number (for example, 01712345678 or +8801712345678)",
+);
+
 const donationFields = {
+  requesterPhone: bangladeshPhoneSchema.optional(),
   recipientName: z.string().trim().min(2).max(100),
   recipientDistrict: z.string().trim().min(2).max(100),
   recipientUpazila: z.string().trim().min(2).max(100),

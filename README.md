@@ -16,3 +16,10 @@ client
 -npm install @gravity-ui/uikit @gravity-ui/icons
 -
 
+
+
+
+
+| Admin `admin@lifeflow.com` | `Admin@12345` |
+| Volunteer  `volunteer@lifeflow.com` | `Volunteer@12345` |
+| Donor  `donor@lifeflow.com` | `Donor@12345` |

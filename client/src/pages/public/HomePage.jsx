@@ -1,7 +1,7 @@
 import { Card } from '@heroui/react'
 import { Activity, ArrowRight, Clock3, Droplet, HeartHandshake, HeartPulse, Salad, Search, ShieldCheck, Stethoscope } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import heroImage from '../../assets/lifeflow-donation-hero.png'
+import heroImage from '../../assets/lifeflow-hero-optimized.jpg'
 import { ContactSection } from '../../components/common/ContactSection'
 import { useAuth } from '../../hooks/useAuth'
 
@@ -45,7 +45,7 @@ export function HomePage() {
           <div className="relative">
             <div className="absolute -inset-8 rounded-full bg-red-100/70 blur-3xl" />
             <div className="relative overflow-hidden rounded-[2rem] border-8 border-white shadow-2xl shadow-slate-900/20">
-              <img src={heroImage} alt="A voluntary blood donor receiving attentive care at a modern donation clinic" className="aspect-[16/10] w-full object-cover object-center" fetchPriority="high" />
+              <img src={heroImage} alt="A voluntary blood donor receiving attentive care at a modern donation clinic" width="1400" height="700" className="aspect-[16/10] w-full object-cover object-center" fetchPriority="high" decoding="async" />
               <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-white/20 bg-slate-950/80 p-4 text-white backdrop-blur-lg sm:left-auto sm:max-w-xs">
                 <p className="text-xs font-extrabold uppercase tracking-widest text-red-300">A small act, lasting impact</p><p className="mt-1 text-sm leading-6 text-slate-200">Register accurately. Respond responsibly. Donate safely.</p>
               </div>
@@ -58,7 +58,7 @@ export function HomePage() {
         <div className="page-shell">
           <div className="max-w-2xl"><p className="text-xs font-extrabold uppercase tracking-[0.22em] text-red-600">Why donate blood</p><h2 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">A human connection no machine can replace.</h2><p className="mt-4 leading-7 text-slate-600">Blood cannot be manufactured. Safe, voluntary donors remain an essential part of healthcare.</p></div>
           <div className="mt-9 grid gap-5 md:grid-cols-3">
-            {reasons.map(({ icon: Icon, title, text }) => <Card key={title} className="border border-slate-200 bg-white shadow-sm transition-transform hover:-translate-y-1"><Card.Content className="p-6"><span className="grid size-11 place-items-center rounded-xl bg-red-50 text-red-600"><Icon className="size-5" /></span><h3 className="mt-5 text-lg font-extrabold text-slate-950">{title}</h3><p className="mt-2 text-sm leading-6 text-slate-600">{text}</p></Card.Content></Card>)}
+            {reasons.map(({ icon: Icon, title, text }) => <Card key={title} className="h-full border border-slate-200 bg-white shadow-sm transition-transform hover:-translate-y-1"><Card.Content className="h-full p-6"><span className="grid size-11 place-items-center rounded-xl bg-red-50 text-red-600"><Icon className="size-5" /></span><h3 className="mt-5 text-lg font-extrabold text-slate-950">{title}</h3><p className="mt-2 text-sm leading-6 text-slate-600">{text}</p></Card.Content></Card>)}
           </div>
         </div>
       </section>

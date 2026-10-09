@@ -7,6 +7,7 @@ import { MainLayout } from '../layouts/MainLayout'
 import { AdminRoute } from './AdminRoute'
 import { DonorRoute } from './DonorRoute'
 import { PrivateRoute } from './PrivateRoute'
+import { RoleRoute } from './RoleRoute'
 import { VolunteerRoute } from './VolunteerRoute'
 
 const lazyNamed = (loader, exportName) => lazy(() => loader().then((module) => ({ default: module[exportName] })))
@@ -54,6 +55,8 @@ export function AppRoutes() {
           <Route element={<DonorRoute />}>
             <Route path="my-donation-requests" element={<MyDonationRequestsPage />} />
             <Route path="create-donation-request" element={<CreateDonationRequestPage />} />
+          </Route>
+          <Route element={<RoleRoute allowedRoles={['donor', 'admin']} />}>
             <Route path="edit-donation-request/:id" element={<EditDonationRequestPage />} />
           </Route>
           <Route element={<AdminRoute />}>

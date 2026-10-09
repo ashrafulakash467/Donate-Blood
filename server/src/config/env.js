@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { isIP } from "node:net";
 import { z } from "zod";
 
 const httpUrl = z.url().refine((value) => ["http:", "https:"].includes(new URL(value).protocol), {
@@ -10,6 +11,10 @@ const environmentSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
   MONGODB_DB_NAME: z.string().min(1).default("bloodDonationDB"),
+  MONGODB_DNS_SERVERS: z.string().optional().default("").refine(
+    (value) => !value || value.split(",").every((server) => isIP(server.trim())),
+    "MONGODB_DNS_SERVERS must contain comma-separated IP addresses",
+  ),
   BETTER_AUTH_SECRET: z.string().min(32, "BETTER_AUTH_SECRET must be at least 32 characters"),
   BETTER_AUTH_URL: httpUrl.transform((value) => new URL(value).origin),
   CLIENT_URL: z.string().min(1, "CLIENT_URL is required").refine(

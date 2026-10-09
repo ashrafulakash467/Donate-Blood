@@ -15,6 +15,21 @@ const setBaseEnvironment = () => {
 };
 
 describe("environment security", () => {
+  it("accepts IP-based MongoDB DNS fallbacks and rejects invalid resolver names", async () => {
+    setBaseEnvironment();
+    process.env.NODE_ENV = "test";
+    process.env.BETTER_AUTH_URL = "http://localhost:5000";
+    process.env.CLIENT_URL = "http://localhost:5173";
+    process.env.MONGODB_DNS_SERVERS = "1.1.1.1,8.8.8.8";
+    let environmentModule = await import("../src/config/env.js");
+    expect(environmentModule.getEnvironment().MONGODB_DNS_SERVERS).toBe("1.1.1.1,8.8.8.8");
+
+    vi.resetModules();
+    process.env.MONGODB_DNS_SERVERS = "dns.example.com";
+    environmentModule = await import("../src/config/env.js");
+    expect(() => environmentModule.getEnvironment()).toThrow(/comma-separated IP addresses/);
+  });
+
   it("normalizes exact allowlisted origins", async () => {
     setBaseEnvironment();
     process.env.NODE_ENV = "test";
