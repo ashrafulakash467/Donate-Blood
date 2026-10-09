@@ -25,6 +25,17 @@ describe("GET /api/v1/health", () => {
   });
 });
 
+describe("GET /", () => {
+  it("returns public API information", async () => {
+    const response = await request(app).get("/").expect(200);
+    expect(response.body).toEqual({
+      success: true,
+      message: "LifeFlow Blood Donation API is running",
+      healthCheck: "/api/v1/health",
+    });
+  });
+});
+
 describe("GET /api/auth/ok", () => {
   it("is handled by Better Auth under the required base path", async () => {
     const response = await request(app).get("/api/auth/ok").expect(200);
