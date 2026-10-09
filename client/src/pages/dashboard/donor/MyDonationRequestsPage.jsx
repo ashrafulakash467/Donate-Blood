@@ -11,6 +11,7 @@ import { MyDonationRequestsTable } from '../../../components/donation/MyDonation
 import { DonationTableSkeleton } from '../../../components/donation/DonationTableSkeleton'
 import { SelectField } from '../../../components/forms/SelectField'
 import { useDonationRequestActions } from '../../../hooks/useDonationRequestActions'
+import { useRefreshOnFocus } from '../../../hooks/useRefreshOnFocus'
 import { getMyDonationRequests } from '../../../services/donorDonationApi'
 import { donationStatuses } from '../../../validators/donationSchema'
 
@@ -25,8 +26,8 @@ export function MyDonationRequestsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const loadRequests = useCallback(async (signal) => {
-    setLoading(true)
+  const loadRequests = useCallback(async (signal, showLoading = true) => {
+    if (showLoading) setLoading(true)
     setError(null)
     try {
       const data = await getMyDonationRequests({ page, limit: PAGE_SIZE, ...(status && { status }) }, signal)
@@ -38,6 +39,7 @@ export function MyDonationRequestsPage() {
       if (!signal?.aborted) setLoading(false)
     }
   }, [page, status])
+  const refreshRequests = useCallback(() => loadRequests(undefined, false), [loadRequests])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -47,6 +49,8 @@ export function MyDonationRequestsPage() {
       controller.abort()
     }
   }, [loadRequests])
+
+  useRefreshOnFocus(refreshRequests)
 
   const actions = useDonationRequestActions(() => loadRequests())
   const changeStatusFilter = (event) => {

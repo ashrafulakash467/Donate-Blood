@@ -10,6 +10,7 @@ import { SelectField } from '../../../components/forms/SelectField'
 import { bloodGroups } from '../../../data/authOptions'
 import { useAuth } from '../../../hooks/useAuth'
 import { useDonationRequestActions } from '../../../hooks/useDonationRequestActions'
+import { useRefreshOnFocus } from '../../../hooks/useRefreshOnFocus'
 import { getManagedDonationRequests } from '../../../services/staffDashboardApi'
 import { donationStatuses } from '../../../validators/donationSchema'
 
@@ -26,8 +27,8 @@ export function AllDonationRequestsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const loadRequests = useCallback(async (signal) => {
-    setLoading(true); setError(null)
+  const loadRequests = useCallback(async (signal, showLoading = true) => {
+    if (showLoading) setLoading(true); setError(null)
     try {
       const params = { page, limit: PAGE_SIZE, sort: filters.sort, ...(filters.status && { status: filters.status }), ...(filters.bloodGroup && { bloodGroup: filters.bloodGroup }) }
       const data = await getManagedDonationRequests(params, signal)
@@ -35,12 +36,15 @@ export function AllDonationRequestsPage() {
     } catch (requestError) { if (requestError.code !== 'ERR_CANCELED') setError(requestError.apiError || { message: requestError.message }) }
     finally { if (!signal?.aborted) setLoading(false) }
   }, [page, filters])
+  const refreshRequests = useCallback(() => loadRequests(undefined, false), [loadRequests])
 
   useEffect(() => {
     const controller = new AbortController()
     const timer = window.setTimeout(() => loadRequests(controller.signal), 0)
     return () => { window.clearTimeout(timer); controller.abort() }
   }, [loadRequests])
+
+  useRefreshOnFocus(refreshRequests)
 
   const actions = useDonationRequestActions(() => loadRequests())
   const updateFilter = (field, value) => { setFilters((current) => ({ ...current, [field]: value })); setPage(1) }

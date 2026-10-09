@@ -1,9 +1,8 @@
 import { Card } from '@heroui/react'
-import { Activity, ArrowRight, Clock3, Droplet, HeartHandshake, HeartPulse, Salad, Search, ShieldCheck, Stethoscope } from 'lucide-react'
+import { Activity, ArrowRight, Clock3, HeartHandshake, HeartPulse, Salad, Stethoscope } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import heroImage from '../../assets/lifeflow-hero-optimized.jpg'
 import { ContactSection } from '../../components/common/ContactSection'
-import { useAuth } from '../../hooks/useAuth'
+import { HeroSection } from '../../components/common/HeroSection'
 
 const reasons = [
   { icon: HeartPulse, title: 'Help in critical moments', text: 'A timely donation supports surgeries, trauma care, childbirth complications, and long-term treatment.' },
@@ -24,35 +23,9 @@ const awareness = [
 ]
 
 export function HomePage() {
-  const { authenticated } = useAuth()
-
   return (
     <>
-      <section className="relative overflow-hidden bg-white">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-300 to-transparent" />
-        <div className="page-shell grid min-h-[680px] items-center gap-12 py-14 lg:grid-cols-[0.88fr_1.12fr] lg:py-20">
-          <div className="relative z-10">
-            <span className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-extrabold uppercase tracking-wider text-red-700"><HeartPulse className="size-4" /> Give hope. Share life.</span>
-            <h1 className="mt-6 max-w-3xl text-5xl font-black leading-[1.04] tracking-[-0.045em] text-slate-950 sm:text-6xl lg:text-7xl">Your blood can be someone’s <span className="text-red-600">next heartbeat.</span></h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">LifeFlow connects verified community members with urgent blood requests across Bangladesh—clearly, securely, and compassionately.</p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link to={authenticated ? '/dashboard' : '/register'} className="inline-flex items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-3.5 font-bold text-white shadow-xl shadow-red-600/20 hover:bg-red-700">{authenticated ? 'Open dashboard' : 'Join as a donor'} <ArrowRight className="size-5" /></Link>
-              <Link to="/search" className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3.5 font-bold text-slate-800 hover:border-red-300 hover:text-red-700"><Search className="size-5" /> Search donors</Link>
-            </div>
-            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-slate-600"><span className="flex items-center gap-2"><ShieldCheck className="size-4 text-red-600" /> Secure profiles</span><span className="flex items-center gap-2"><Droplet className="size-4 fill-red-600 text-red-600" /> Eight blood groups</span></div>
-          </div>
-
-          <div className="relative">
-            <div className="absolute -inset-8 rounded-full bg-red-100/70 blur-3xl" />
-            <div className="relative overflow-hidden rounded-[2rem] border-8 border-white shadow-2xl shadow-slate-900/20">
-              <img src={heroImage} alt="A voluntary blood donor receiving attentive care at a modern donation clinic" width="1400" height="700" className="aspect-[16/10] w-full object-cover object-center" fetchPriority="high" decoding="async" />
-              <div className="absolute inset-x-4 bottom-4 rounded-2xl border border-white/20 bg-slate-950/80 p-4 text-white backdrop-blur-lg sm:left-auto sm:max-w-xs">
-                <p className="text-xs font-extrabold uppercase tracking-widest text-red-300">A small act, lasting impact</p><p className="mt-1 text-sm leading-6 text-slate-200">Register accurately. Respond responsibly. Donate safely.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroSection />
 
       <section className="bg-slate-50 py-16 sm:py-24">
         <div className="page-shell">

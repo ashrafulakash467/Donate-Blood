@@ -6,6 +6,7 @@ const apiMocks = vi.hoisted(() => ({ get: vi.fn(), patch: vi.fn() }))
 vi.mock('../src/services/axiosSecure', () => ({ axiosSecure: apiMocks }))
 
 import {
+  cancelDonorAssignment,
   getAllUsers,
   getDashboardStats,
   getDonationTrends,
@@ -43,6 +44,12 @@ describe('staff dashboard API integration', () => {
     await getManagedDonationRequests(params)
     expect(apiMocks.get).toHaveBeenCalledWith('/donations/manage', expect.objectContaining({ params }))
   })
+
+  it('uses the dedicated donor-assignment cancellation endpoint', async () => {
+    const id = '507f1f77bcf86cd799439011'
+    await cancelDonorAssignment(id)
+    expect(apiMocks.patch).toHaveBeenCalledWith(`/donations/${id}/cancel-assignment`)
+  })
 })
 
 describe('role-based dashboard permissions', () => {
@@ -55,13 +62,13 @@ describe('role-based dashboard permissions', () => {
   })
 
   it('never offers edit or delete to volunteers', () => {
-    expect(getManagedRequestActions('volunteer', 'inprogress')).toEqual(['view', 'done', 'canceled'])
+    expect(getManagedRequestActions('volunteer', 'inprogress')).toEqual(['view', 'done', 'canceled', 'cancelAssignment'])
     expect(getManagedRequestActions('volunteer', 'pending')).toEqual(['view', 'canceled'])
     expect(getManagedRequestActions('volunteer', 'done')).toEqual(['view'])
   })
 
   it('offers admin management while respecting server status transitions', () => {
-    expect(getManagedRequestActions('admin', 'inprogress')).toEqual(['view', 'edit', 'delete', 'done', 'canceled'])
+    expect(getManagedRequestActions('admin', 'inprogress')).toEqual(['view', 'edit', 'delete', 'done', 'canceled', 'cancelAssignment'])
     expect(getManagedRequestActions('admin', 'pending')).toEqual(['view', 'edit', 'delete', 'canceled'])
   })
 

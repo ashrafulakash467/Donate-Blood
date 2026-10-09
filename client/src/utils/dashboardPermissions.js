@@ -3,6 +3,7 @@ export function getManagedRequestActions(role, status) {
   if (role === 'admin') actions.push('edit', 'delete')
   if (status === 'inprogress') actions.push('done')
   if (status === 'pending' || status === 'inprogress') actions.push('canceled')
+  if (status === 'inprogress') actions.push('cancelAssignment')
   return actions
 }
 

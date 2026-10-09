@@ -7,6 +7,7 @@ import { ErrorMessage } from '../../components/common/ErrorMessage'
 import { PageHeader } from '../../components/common/PageHeader'
 import { Pagination } from '../../components/common/Pagination'
 import { getPendingDonations } from '../../services/publicWebsiteApi'
+import { useRefreshOnFocus } from '../../hooks/useRefreshOnFocus'
 
 const PAGE_SIZE = 9
 
@@ -30,24 +31,24 @@ export function DonationRequestsPage() {
         if (!signal?.aborted) setLoading(false)
       }
   }, [page])
+  const refreshDonations = useCallback(() => loadDonations(undefined, false), [loadDonations])
 
   useEffect(() => {
     const controller = new AbortController()
-    const refreshVisiblePage = () => void loadDonations(controller.signal, false)
-    const refreshWhenVisible = () => {
-      if (document.visibilityState === 'visible') refreshVisiblePage()
-    }
 
     const initialLoadTimer = window.setTimeout(() => void loadDonations(controller.signal), 0)
-    window.addEventListener('focus', refreshVisiblePage)
-    document.addEventListener('visibilitychange', refreshWhenVisible)
     return () => {
       window.clearTimeout(initialLoadTimer)
       controller.abort()
-      window.removeEventListener('focus', refreshVisiblePage)
-      document.removeEventListener('visibilitychange', refreshWhenVisible)
     }
   }, [loadDonations])
+
+  useRefreshOnFocus(refreshDonations)
+
+  useEffect(() => {
+    window.addEventListener('lifeflow:donations-changed', refreshDonations)
+    return () => window.removeEventListener('lifeflow:donations-changed', refreshDonations)
+  }, [refreshDonations])
 
   return (
     <section className="page-shell py-12 sm:py-16">

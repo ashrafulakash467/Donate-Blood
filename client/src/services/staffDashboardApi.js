@@ -26,3 +26,7 @@ export async function updateUserRole(id, role) {
 export async function getManagedDonationRequests(params, signal) {
   return responseData(await axiosSecure.get(apiEndpoints.donations.manage, { params, signal }))
 }
+
+export async function cancelDonorAssignment(id) {
+  return responseData(await axiosSecure.patch(apiEndpoints.donations.cancelAssignment(id)))
+}

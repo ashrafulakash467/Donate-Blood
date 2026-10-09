@@ -10,6 +10,7 @@ import { MyDonationRequestsTable } from '../../../components/donation/MyDonation
 import { DonationTableSkeleton } from '../../../components/donation/DonationTableSkeleton'
 import { useAuth } from '../../../hooks/useAuth'
 import { useDonationRequestActions } from '../../../hooks/useDonationRequestActions'
+import { useRefreshOnFocus } from '../../../hooks/useRefreshOnFocus'
 import { getMyDonationRequests } from '../../../services/donorDonationApi'
 
 export function DonorDashboardHome() {
@@ -18,8 +19,8 @@ export function DonorDashboardHome() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const loadRecent = useCallback(async (signal) => {
-    setLoading(true)
+  const loadRecent = useCallback(async (signal, showLoading = true) => {
+    if (showLoading) setLoading(true)
     setError(null)
     try {
       const data = await getMyDonationRequests({ page: 1, limit: 3 }, signal)
@@ -30,6 +31,7 @@ export function DonorDashboardHome() {
       if (!signal?.aborted) setLoading(false)
     }
   }, [])
+  const refreshRecent = useCallback(() => loadRecent(undefined, false), [loadRecent])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -39,6 +41,8 @@ export function DonorDashboardHome() {
       controller.abort()
     }
   }, [loadRecent])
+
+  useRefreshOnFocus(refreshRecent)
 
   const actions = useDonationRequestActions(() => loadRecent())
 

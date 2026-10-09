@@ -122,7 +122,7 @@ avatar, blood group, district, and upazila.
 | GET | `/api/v1/donations/:id` | Active user | — |
 | PATCH | `/api/v1/donations/:id` | Owner/Admin | Editable details |
 | DELETE | `/api/v1/donations/:id` | Owner/Admin | — |
-| POST | `/api/v1/donations/:id/confirm` | Active matching donor | — |
+| POST | `/api/v1/donations/:id/confirm` | Any active donor except request owner | — |
 | PATCH | `/api/v1/donations/:id/status` | Owner/Admin/Volunteer | Status body |
 | PATCH | `/api/v1/donations/:id/cancel-assignment` | Admin/Volunteer | No body |
 

@@ -137,6 +137,25 @@ describe("donation service", () => {
     await expect(confirmDonationRequest(id, profile)).rejects.toMatchObject({ statusCode: 409 });
   });
 
+  it("allows a donor with any blood group", async () => {
+    const abPositiveRequest = { ...pending, bloodGroup: "AB+" };
+    collection.findOne.mockResolvedValue(abPositiveRequest);
+    collection.findOneAndUpdate.mockResolvedValue({
+      ...abPositiveRequest,
+      donationStatus: "inprogress",
+      donorUserId: profile.authUserId,
+    });
+
+    await expect(confirmDonationRequest(id, profile)).resolves.toMatchObject({
+      donationStatus: "inprogress",
+    });
+    expect(collection.findOneAndUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ bloodGroup: "AB+" }),
+      expect.any(Object),
+      { returnDocument: "after" },
+    );
+  });
+
   it("atomically cancels an active donor assignment and clears donor identity", async () => {
     const assigned = {
       ...pending,
@@ -188,11 +207,12 @@ describe("donation service", () => {
     await expect(cancelDonationAssignment(id)).rejects.toMatchObject({ statusCode: 409 });
   });
 
-  it("prevents owners and mismatched blood groups from confirming", async () => {
+  it("prevents owners but permits a different donor blood group", async () => {
     collection.findOne.mockResolvedValue({ ...pending, requesterUserId: "donor-2" });
     await expect(confirmDonationRequest(id, profile)).rejects.toMatchObject({ statusCode: 409 });
     collection.findOne.mockResolvedValue({ ...pending, bloodGroup: "O-" });
-    await expect(confirmDonationRequest(id, profile)).rejects.toMatchObject({ statusCode: 403 });
+    collection.findOneAndUpdate.mockResolvedValue({ ...pending, bloodGroup: "O-", donationStatus: "inprogress" });
+    await expect(confirmDonationRequest(id, profile)).resolves.toMatchObject({ donationStatus: "inprogress" });
   });
 
   it("allows an owner to finish an in-progress request atomically", async () => {

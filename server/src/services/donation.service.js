@@ -119,9 +119,6 @@ export const confirmDonationRequest = async (id, profile) => {
   if (existing.requesterUserId === profile.authUserId) {
     throw new ApiError(409, "You cannot confirm your own donation request");
   }
-  if (existing.bloodGroup !== profile.bloodGroup) {
-    throw new ApiError(403, "Your blood group is not eligible for this request");
-  }
   if (existing.donationStatus !== DONATION_STATUSES.PENDING || existing.donorUserId) {
     throw new ApiError(409, "This donation request is no longer available");
   }
@@ -132,7 +129,7 @@ export const confirmDonationRequest = async (id, profile) => {
       donationStatus: DONATION_STATUSES.PENDING,
       donorUserId: null,
       requesterUserId: { $ne: profile.authUserId },
-      bloodGroup: profile.bloodGroup,
+      bloodGroup: existing.bloodGroup,
     },
     {
       $set: {

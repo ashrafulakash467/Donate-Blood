@@ -16,6 +16,7 @@ export const apiEndpoints = Object.freeze({
     details: (id) => `/donations/${id}`,
     confirm: (id) => `/donations/${id}/confirm`,
     status: (id) => `/donations/${id}/status`,
+    cancelAssignment: (id) => `/donations/${id}/cancel-assignment`,
   },
   dashboard: {
     stats: '/dashboard/stats',
