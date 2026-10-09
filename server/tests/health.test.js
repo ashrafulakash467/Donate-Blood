@@ -2,6 +2,7 @@ import request from "supertest";
 import { beforeAll, describe, expect, it } from "vitest";
 
 let app;
+let vercelApp;
 
 beforeAll(async () => {
   process.env.PORT = "5000";
@@ -12,6 +13,7 @@ beforeAll(async () => {
   process.env.BETTER_AUTH_URL = "http://localhost:5000";
   process.env.CLIENT_URL = "http://localhost:5173";
   ({ default: app } = await import("../src/app.js"));
+  ({ default: vercelApp } = await import("../index.js"));
 });
 
 describe("GET /api/v1/health", () => {
@@ -33,6 +35,14 @@ describe("GET /", () => {
       message: "LifeFlow Blood Donation API is running",
       healthCheck: "/api/v1/health",
     });
+  });
+});
+
+describe("Vercel Express entrypoint", () => {
+  it("exports the same app and preserves nested API routes", async () => {
+    expect(vercelApp).toBe(app);
+    const response = await request(vercelApp).get("/api/v1/health").expect(200);
+    expect(response.body.data).toMatchObject({ status: "ok", environment: "test" });
   });
 });
 

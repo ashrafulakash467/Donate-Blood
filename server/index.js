@@ -1,2 +1,5 @@
-// Compatibility entry point. Local startup lives in src/index.js; this file never listens.
-export { default } from "./src/app.js";
+import "dotenv/config";
+import app from "./src/app.js";
+
+// Vercel uses this single default export. Local startup remains in src/index.js.
+export default app;
