@@ -11,7 +11,10 @@ import apiRouter from "./routes/index.js";
 import { ApiError } from "./utils/ApiError.js";
 
 const app = express();
-const allowedOrigins = getAllowedOrigins();
+const allowedOrigins = [
+  "https://donate-blood-livid.vercel.app",
+  "http://localhost:5173",
+];
 
 app.set("trust proxy", 1);
 app.disable("x-powered-by");
