@@ -2,14 +2,15 @@
 
 ## Architecture
 
-The root `index.js` default-exports the existing Express application. Local
-startup remains in `src/index.js`, which initializes MongoDB and indexes before
-calling `app.listen()`. Vercel imports the root entrypoint without opening a
-listener and runs the app as one serverless Express function.
+`src/app.js` is the single Vercel Express entrypoint. It imports Express,
+default-exports the application, and never opens a listener. Local startup
+remains in `src/index.js`, which initializes MongoDB and indexes before calling
+`app.listen()`.
 
-Current Vercel Express detection is zero-configuration, so no catch-all
-`vercel.json` rewrite is used. All original request paths reach Express,
-including `/api/auth/*`, `/api/v1/*`, and the Stripe raw-body webhook.
+Current Vercel Express detection is zero-configuration, so there is no root
+wrapper, `api/index.js`, or catch-all `vercel.json` rewrite. All original
+request paths reach Express, including `/api/auth/*`, `/api/v1/*`, and the
+Stripe raw-body webhook.
 
 ## Required production environment
 

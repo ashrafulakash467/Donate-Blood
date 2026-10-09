@@ -216,9 +216,9 @@ external location API is required.
 ## Vercel deployment
 
 Set the Vercel project root to `server` and add all production environment
-variables. The root `index.js` is a recognized default Express export, so no
-legacy rewrite configuration is required. `src/app.js` contains no listener;
-local startup remains in `src/index.js`.
+variables. `src/app.js` is the single detected Express entrypoint and contains
+no listener, so no legacy rewrite configuration is required. Local startup
+remains in `src/index.js`.
 
 Production requires HTTPS `BETTER_AUTH_URL`/`CLIENT_URL` and both Stripe
 secrets. Full setup and remote smoke-test instructions are in

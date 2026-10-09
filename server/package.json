@@ -2,7 +2,7 @@
   "name": "server",
   "version": "1.0.0",
   "description": "Backend API for the Blood Donation Management System",
-  "main": "index.js",
+  "main": "src/app.js",
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
